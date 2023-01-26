@@ -399,7 +399,35 @@ Resources:
       GenerateSecret: true
       SupportedIdentityProviders:
         - COGNITO
+      #lab 5
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - openid
+        - profile
+        - "order-api/delete_order"
+      CallbackURLs:
+        - "https://localhost/callback"
+    DependsOn: OrderCognitoResourceServer
 
+# lab 5
+  OrderCognitoDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Sub "order-app-${AWS::AccountId}"
+      UserPoolId: !Ref OrderCognitoPool
+  
+  OrderCognitoResourceServer:
+    Type: AWS::Cognito::UserPoolResourceServer
+    Properties:
+      Identifier: "order-api"
+      Name: "order-api"
+      Scopes:
+        - ScopeName: "delete_order"
+          ScopeDescription: "Delete Orders"
+      UserPoolId: !Ref OrderCognitoPool
+    
 
 Outputs:
   DynamoDBTableName:
@@ -440,3 +468,10 @@ Outputs:
   CognitoUserPoolID:
     Description: "ID of the Cognito userpool"
     Value: !Ref OrderCognitoPool
+  # lab 5
+  CognitoDomain:
+    Description: "ID of the Cognito Domain"
+    Value: !Ref OrderCognitoDomain
+  CognitoResourceServer:
+    Description: "Cognito Resource Server"
+    Value: !Ref OrderCognitoResourceServer
