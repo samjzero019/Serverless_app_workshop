@@ -62,6 +62,12 @@ Resources:
         AllowHeaders: "'X-Forwarded-For'"
         AllowOrigin: "'*'"
         MaxAge: "'600'"
+      Auth:
+        DefaultAuthorizer: MyCognitoAuthorizer
+        Authorizers:
+          MyCognitoAuthorizer:
+            UserPoolArn: !GetAtt OrderCognitoPool.Arn
+
       DefinitionBody:
         'Fn::Transform':
           Name: 'AWS::Include'
@@ -366,6 +372,33 @@ Resources:
             FunctionName: !Ref ProcessPaymentFumction
         - LambdaInvokePolicy:
             FunctionName: !Ref SendOrderToRestaurantFunction
+  
+  # lab 4
+  OrderCognitoPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: orders-pool
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+      UsernameAttributes:
+        - email
+      Schema:
+        - AttributeDataType: String
+          Name: email
+          Required: true
+
+  OrderCognitoPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref OrderCognitoPool
+      ClientName: order-pool-client
+      ExplicitAuthFlows:
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: true
+      SupportedIdentityProviders:
+        - COGNITO
 
 
 Outputs:
@@ -400,4 +433,10 @@ Outputs:
     Description: "URL of order dead-letter queue"
     Value: !Ref OrderDLQueue
 
- 
+  # lab 4
+  CognitoClientID:
+    Description: "The client ID of the Cognito user pool"
+    Value: !Ref OrderCognitoPoolClient
+  CognitoUserPoolID:
+    Description: "ID of the Cognito userpool"
+    Value: !Ref OrderCognitoPool
