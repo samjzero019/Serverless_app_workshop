@@ -11,10 +11,15 @@ exports.getOrderById = async (event) => {
     }
     const orderId = event.pathParameters.orderId;    // It gets orderId from url
 
+    // let get_item = {
+    //     user_id : "static_user",   
+    //     id: orderId
+    // }
     let get_item = {
-        user_id : "static_user",   
-        id: orderId
+      user_id: event.requestContext.authorizer.claims["cognito:username"] || event.requestContext.authorizer.claims.username, // As we are using Lambda proxy from AWS ApiGateway, the cognito username will directly pass to here.
+      id: orderId,
     }
+
 
     let params = {
         TableName : tableName,
